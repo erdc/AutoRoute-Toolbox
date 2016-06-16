@@ -49,6 +49,7 @@ def floodmap_to_shapefile(args):
     BC_Raster = os.path.join("in_memory", "BC_Raster_{0}".format(index))
     OutBndCln = arcpy.sa.BoundaryClean(InRast, "NO_SORT", "TWO_WAY")
     OutBndCln.save(BC_Raster)
+    arcpy.Delete_management(InRast)
     
     # Process: Con
     print("  Turning all values to 0 or 3 ...")

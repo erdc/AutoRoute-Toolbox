@@ -81,26 +81,30 @@ class MultipleFloodRastersToShapefile(object):
 
             # Process: Boundary Clean
             arcpy.AddMessage("  Performing boundary clean ...")
-            BC_Raster = os.path.join(working_directory, "BC_Raster.img")
+            BC_Raster = os.path.join("in_memory", "BC_Raster.img")
             OutBndCln = BoundaryClean(InRast, "NO_SORT", "TWO_WAY")
             OutBndCln.save(BC_Raster)
-
+            arcpy.Delete_management(InRast)
+            
             # Process: Con
             arcpy.AddMessage("  Turning all values to 0 or 3 ...")
-            BC_3C_Raster = os.path.join(working_directory, "BC_3C_Raster.img")
+            BC_3C_Raster = os.path.join("in_memory", "BC_3C_Raster.img")
             OutCon = Con((OutBndCln!=3),0,3)
             OutCon.save(BC_3C_Raster)
+            arcpy.Delete_management(BC_Raster)
 
             # Process: Set Null
             arcpy.AddMessage("  Setting values of 0 to NULL ...")
-            BC_3CNULL_Raster = os.path.join(working_directory, "BC_3CNULL_Raster.img")
+            BC_3CNULL_Raster = os.path.join("in_memory", "BC_3CNULL_Raster.img")
             OutNULL = SetNull(OutCon==0,OutCon) 
             OutNULL.save(BC_3CNULL_Raster)
+            arcpy.Delete_management(BC_3C_Raster)
 
             # Process: Raster to Polygon
             arcpy.AddMessage("  Converting raster to polygon ...")
-            Poly_A = os.path.join(working_directory, "Poly_A.shp")
+            Poly_A = os.path.join("in_memory", "Poly_A.shp")
             arcpy.RasterToPolygon_conversion(BC_3CNULL_Raster, Poly_A, "SIMPLIFY", "Value")
+            arcpy.Delete_management(BC_3CNULL_Raster)
 
             ############################################################
             #This is where we loop the aggregate polygons
@@ -110,7 +114,7 @@ class MultipleFloodRastersToShapefile(object):
             Min_Area = "0 SQUAREMETERS"
             Min_Hole_Size = "100000 SQUAREMETERS"			#Should be a large Number
 
-            Poly_B = os.path.join(working_directory, "Poly_B.shp")
+            Poly_B = os.path.join("in_memory", "Poly_B.shp")
             arcpy.AddMessage("  Working through the aggregation of polygons ...")
             for x in xrange(1,Num_Iter):
                  if(Sign == "Even"):
@@ -132,8 +136,16 @@ class MultipleFloodRastersToShapefile(object):
             if(Sign == "Even"):
                  arcpy.CopyFeatures_management(Poly_A,Poly_Final)
             
+            #CLEANUP
+            arcpy.Delete_management("in_memory")
+            
             out_shapefile_list.append(Poly_Final)
+        
         
         #Merge Shapefiles
         arcpy.AddMessage("Merging all flood map shapefiles ...")
         arcpy.Merge_management(out_shapefile_list, out_shapefile)
+        
+        #CLEANUP
+        for shapfile in out_shapefile_list:
+            arcpy.Delete_management(shapfile)
