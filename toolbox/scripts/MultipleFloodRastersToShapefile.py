@@ -130,7 +130,7 @@ class MultipleFloodRastersToShapefile(object):
                  if(Sign == "Even"):
                       arcpy.AggregatePolygons_cartography(Poly_B, Poly_A, Agg_Val, Min_Area, Min_Hole_Size, "NON_ORTHOGONAL", "","")
 
-            Poly_Final = os.path.join(working_directory, "Poly_Final_{0}.shp".format(index))
+            Poly_Final = os.path.join(working_directory, "Poly_{0}_{1}.shp".format(os.path.splitext(flood_raster)[0], index))
             if(Sign == "Odd"):
                  arcpy.CopyFeatures_management(Poly_B,Poly_Final)
             if(Sign == "Even"):
