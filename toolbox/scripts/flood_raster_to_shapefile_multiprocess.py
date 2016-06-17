@@ -97,7 +97,7 @@ def floodmap_to_shapefile(args):
          if(Sign == "Even"):
               arcpy.AggregatePolygons_cartography(Poly_B, Poly_A, Agg_Val, Min_Area, Min_Hole_Size, "NON_ORTHOGONAL", "","")
 
-    Poly_Final = os.path.join(working_directory, "Poly_{0}_{1}.shp".format(os.path.splitext(os.path.basename(flood_raster))[0], index))
+    Poly_Final = os.path.join(working_directory, "Poly_{0}_{1}.shp".format(os.path.splitext(os.path.basename(flood_raster))[0].replace('-','_'), index))
     if(Sign == "Odd"):
          arcpy.CopyFeatures_management(Poly_B,Poly_Final)
     if(Sign == "Even"):
@@ -110,6 +110,12 @@ def floodmap_to_shapefile(args):
     return Poly_Final
 
 def main_execute(floodmap_directory, working_directory, out_shapefile):
+
+    if arcpy.CheckExtension("Spatial") == "Available":
+        arcpy.AddMessage("Checking out spatial license ...")
+        arcpy.CheckOutExtension("Spatial")
+    else:
+        arcpy.ExecuteError("ERROR: The Spatial Analyst license is required to run this tool.")
 
     multiprocessing.set_executable(os.path.join(sys.exec_prefix, 'pythonw.exe'))
     

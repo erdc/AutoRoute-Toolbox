@@ -59,6 +59,13 @@ class MultipleFloodRastersToShapefile(object):
 
     def execute(self, parameters, messages):
         """The source code of the tool."""
+        
+        if arcpy.CheckExtension("Spatial") == "Available":
+            arcpy.AddMessage("Checking out spatial license ...")
+            arcpy.CheckOutExtension("Spatial")
+        else:
+            arcpy.ExecuteError("ERROR: The Spatial Analyst license is required to run this tool.")
+            
         floodmap_directory = parameters[0].valueAsText
         working_directory = parameters[1].valueAsText
         out_shapefile = parameters[2].valueAsText
@@ -130,7 +137,7 @@ class MultipleFloodRastersToShapefile(object):
                  if(Sign == "Even"):
                       arcpy.AggregatePolygons_cartography(Poly_B, Poly_A, Agg_Val, Min_Area, Min_Hole_Size, "NON_ORTHOGONAL", "","")
 
-            Poly_Final = os.path.join(working_directory, "Poly_{0}_{1}.shp".format(os.path.splitext(flood_raster)[0], index))
+            Poly_Final = os.path.join(working_directory, "Poly_{0}_{1}.shp".format(os.path.splitext(flood_raster)[0].replace('-','_'), index))
             if(Sign == "Odd"):
                  arcpy.CopyFeatures_management(Poly_B,Poly_Final)
             if(Sign == "Even"):
